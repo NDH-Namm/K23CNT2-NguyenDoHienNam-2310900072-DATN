@@ -1,0 +1,25 @@
+<CodeBlock language="gitignore" editable>
+# Environment variables
+.env
+.env.*
+!.env.example
+
+Dependencies
+node_modules/
+Build output
+dist/
+build/
+coverage/
+Logs
+*.log
+logs/
+Temporary files
+*.tmp
+*.bak
+Local editor settings
+.vscode/
+.idea/
+Operating system files
+.DS_Store
+Thumbs.db
+</CodeBlock>
