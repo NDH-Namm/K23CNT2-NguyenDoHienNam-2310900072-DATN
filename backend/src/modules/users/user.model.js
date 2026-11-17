@@ -1,6 +1,12 @@
 
 const mongoose = require("mongoose");
 
+const hideCredentials = (_doc, result) => {
+  delete result.password;
+  delete result.tokenVersion;
+  return result;
+};
+
 const userSchema = new mongoose.Schema(
   {
     employeeCode: {
@@ -85,6 +91,16 @@ const userSchema = new mongoose.Schema(
       default: null,
     },
 
+    // Document cũ chưa có trường này được đọc như phiên bản 0.
+    tokenVersion: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: Number.MAX_SAFE_INTEGER,
+      validate: Number.isSafeInteger,
+      select: false,
+    },
+
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -100,6 +116,8 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
     versionKey: false,
     collection: "users",
+    toJSON: { transform: hideCredentials },
+    toObject: { transform: hideCredentials },
   }
 );
 

@@ -1,5 +1,7 @@
 
 const User = require("../users/user.model");
+const createError = require("../../utils/app-error");
+const { getTokenVersion, isValidTokenVersion, tokenVersionFilter } = require("../../utils/token-version");
 
 const {
   hashPassword,
@@ -21,23 +23,10 @@ class AuthService {
     const user = await User.findOne({
       email: normalizedEmail,
       isDeleted: false,
-    }).select("+password");
+    }, null, { readPreference: "primary" }).select("+password +tokenVersion");
 
     if (!user) {
-      const error = new Error(
-        "Email hoặc mật khẩu không chính xác."
-      );
-      error.statusCode = 401;
-      throw error;
-    }
-
-    // Kiểm tra trạng thái
-    if (user.status !== "active") {
-      const error = new Error(
-        "Tài khoản hiện không thể đăng nhập."
-      );
-      error.statusCode = 403;
-      throw error;
+      throw createError("Email hoặc mật khẩu không chính xác.", 401);
     }
 
     // Kiểm tra mật khẩu
@@ -47,19 +36,26 @@ class AuthService {
     );
 
     if (!isPasswordValid) {
-      const error = new Error(
-        "Email hoặc mật khẩu không chính xác."
-      );
-      error.statusCode = 401;
-      throw error;
+      throw createError("Email hoặc mật khẩu không chính xác.", 401);
+    }
+
+    // Chỉ tiết lộ trạng thái sau khi mật khẩu đã được xác minh.
+    if (user.status !== "active") {
+      throw createError("Tài khoản hiện không thể đăng nhập.", 403);
     }
 
     // Tạo JWT
     const accessToken = generateAccessToken(user);
 
     // Cập nhật lần đăng nhập
-    user.lastLoginAt = new Date();
-    await user.save();
+    const lastLoginAt = new Date();
+    const loginUpdate = await User.updateOne({
+      _id: user._id, status: "active", isDeleted: false, password: user.password,
+      ...tokenVersionFilter(getTokenVersion(user)),
+    }, { $set: { lastLoginAt } }, { writeConcern: { w: "majority" } });
+    if (loginUpdate.matchedCount !== 1) {
+      throw createError("Thông tin xác thực đã thay đổi. Vui lòng đăng nhập lại.", 401);
+    }
 
     // Thông tin trả về
     const userData = {
@@ -74,7 +70,7 @@ class AuthService {
       positionId: user.positionId,
       status: user.status,
       mustChangePassword: user.mustChangePassword,
-      lastLoginAt: user.lastLoginAt,
+      lastLoginAt,
     };
 
     return {
@@ -89,21 +85,26 @@ class AuthService {
   async changePassword(
     userId,
     currentPassword,
-    newPassword
+    newPassword,
+    expectedTokenVersion = 0
   ) {
     // Tìm tài khoản
     const user = await User.findOne({
       _id: userId,
       isDeleted: false,
       status: "active",
-    }).select("+password");
+    }, null, { readPreference: "primary" }).select("+password +tokenVersion");
 
     if (!user) {
-      const error = new Error(
-        "Không tìm thấy tài khoản."
-      );
-      error.statusCode = 404;
-      throw error;
+      throw createError("Không tìm thấy tài khoản.", 404);
+    }
+
+    const currentVersion = getTokenVersion(user);
+    if (!isValidTokenVersion(currentVersion) || currentVersion !== expectedTokenVersion) {
+      throw createError("Phiên đăng nhập không còn hợp lệ. Vui lòng đăng nhập lại.", 401);
+    }
+    if (currentVersion === Number.MAX_SAFE_INTEGER) {
+      throw createError("Không thể tăng phiên bản xác thực. Vui lòng liên hệ quản trị hệ thống.", 409);
     }
 
     // Kiểm tra mật khẩu hiện tại
@@ -113,30 +114,30 @@ class AuthService {
     );
 
     if (!isValid) {
-      const error = new Error(
-        "Mật khẩu hiện tại không chính xác."
-      );
-      error.statusCode = 400;
-      throw error;
+      throw createError("Mật khẩu hiện tại không chính xác.", 400);
     }
 
     // Không cho phép sử dụng lại mật khẩu cũ
-    if (currentPassword === newPassword) {
-      const error = new Error(
-        "Mật khẩu mới phải khác mật khẩu hiện tại."
-      );
-      error.statusCode = 400;
-      throw error;
+    if (await comparePassword(newPassword, user.password)) {
+      throw createError("Mật khẩu mới phải khác mật khẩu hiện tại.", 400);
     }
 
     // Mã hóa mật khẩu mới
-    user.password = await hashPassword(newPassword);
+    const hashedPassword = await hashPassword(newPassword);
 
-    // Cập nhật trạng thái
-    user.mustChangePassword = false;
-    user.passwordChangedAt = new Date();
-
-    await user.save();
+    // Một lệnh nguyên tử: đổi hash và tăng phiên bản cùng lúc. Điều kiện hash
+    // và version ngăn hai yêu cầu cùng mật khẩu cũ ghi đè kết quả của nhau.
+    const result = await User.updateOne({
+      _id: userId, isDeleted: false, status: "active", password: user.password,
+      ...tokenVersionFilter(currentVersion),
+    }, {
+      $set: { password: hashedPassword, mustChangePassword: false, passwordChangedAt: new Date() },
+      $inc: { tokenVersion: 1 },
+    }, { runValidators: true, writeConcern: { w: "majority" } });
+    if (result.matchedCount !== 1) {
+      throw createError("Tài khoản hoặc mật khẩu đã thay đổi. Vui lòng đăng nhập lại.",
+        409, "PASSWORD_CHANGE_CONFLICT");
+    }
 
     return {
       message:

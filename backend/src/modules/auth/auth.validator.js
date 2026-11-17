@@ -1,5 +1,6 @@
 
 const { z } = require("zod");
+const { newPasswordSchema, existingPasswordSchema } = require("../../validators/password.validator");
 
 // =====================================
 // VALIDATE ĐĂNG NHẬP
@@ -13,10 +14,7 @@ const loginSchema = z.object({
     .max(150)
     .transform((value) => value.toLowerCase()),
 
-  password: z
-    .string()
-    .min(8, "Mật khẩu phải có ít nhất 8 ký tự.")
-    .max(128, "Mật khẩu không được vượt quá 128 ký tự."),
+  password: existingPasswordSchema,
 });
 
 const validateLogin = (req, res, next) => {
@@ -42,15 +40,8 @@ const validateLogin = (req, res, next) => {
 // =====================================
 
 const changePasswordSchema = z.object({
-  currentPassword: z
-    .string()
-    .min(1, "Vui lòng nhập mật khẩu hiện tại.")
-    .max(128),
-
-  newPassword: z
-    .string()
-    .min(8, "Mật khẩu mới phải có ít nhất 8 ký tự.")
-    .max(128, "Mật khẩu mới không được vượt quá 128 ký tự."),
+  currentPassword: existingPasswordSchema,
+  newPassword: newPasswordSchema,
 });
 
 const validateChangePassword = (req, res, next) => {

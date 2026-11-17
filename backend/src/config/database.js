@@ -1,5 +1,6 @@
 
 const mongoose = require("mongoose");
+const { logError } = require("../utils/logger");
 
 const connectDatabase = async () => {
   try {
@@ -15,8 +16,9 @@ const connectDatabase = async () => {
       `Database name: ${connection.connection.name}`
     );
   } catch (error) {
-    console.error("MongoDB connection failed:", error.message);
-    process.exit(1);
+    logError(error, "database-connect");
+    // Để caller quyết định cách dừng; không kết thúc tiến trình giữa luồng xử lý.
+    throw error;
   }
 };
 

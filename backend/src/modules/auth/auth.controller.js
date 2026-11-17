@@ -1,5 +1,6 @@
 
 const authService = require("./auth.service");
+const { getTokenVersion } = require("../../utils/token-version");
 
 class AuthController {
   // API đăng nhập
@@ -29,7 +30,8 @@ async changePassword(req, res, next) {
     const result = await authService.changePassword(
       req.user._id,
       currentPassword,
-      newPassword
+      newPassword,
+      getTokenVersion(req.user)
     );
 
     return res.status(200).json({

@@ -1,5 +1,7 @@
 
 const { z } = require("zod");
+const { newPasswordSchema } = require("../../validators/password.validator");
+const { paginationSchema } = require("../../validators/pagination.validator");
 
 const ROLES = [
   "admin",
@@ -39,10 +41,7 @@ const createUserSchema = z.object({
     .max(150)
     .transform((value) => value.toLowerCase()),
 
-  password: z
-    .string()
-    .min(8, "Mật khẩu phải có ít nhất 8 ký tự.")
-    .max(128),
+  password: newPasswordSchema,
 
   phone: z
     .string()
@@ -116,9 +115,7 @@ const updateStatusSchema = z.object({
 // VALIDATE QUERY DANH SÁCH
 // =====================================
 
-const listUsersSchema = z.object({
-  page: z.string().regex(/^\d+$/).optional(),
-  limit: z.string().regex(/^\d+$/).optional(),
+const listUsersSchema = paginationSchema.extend({
   search: z.string().max(100).optional(),
   role: z.enum(ROLES).optional(),
   status: z.enum(STATUSES).optional(),

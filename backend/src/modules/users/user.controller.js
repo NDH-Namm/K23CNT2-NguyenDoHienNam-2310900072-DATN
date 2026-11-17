@@ -65,7 +65,8 @@ class UserController {
     try {
       const user = await userService.updateUser(
         req.params.id,
-        req.body
+        req.body,
+        req.user._id
       );
 
       return res.status(200).json({

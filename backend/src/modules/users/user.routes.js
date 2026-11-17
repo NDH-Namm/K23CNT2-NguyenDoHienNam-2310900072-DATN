@@ -8,6 +8,7 @@ const userController = require("./user.controller");
 
 // Middleware
 const authenticate = require("../../middlewares/auth.middleware");
+const requirePasswordChanged = require("../../middlewares/password-change.middleware");
 const authorizeRoles = require("../../middlewares/role.middleware");
 const {
   validateCreateUser,
@@ -18,7 +19,7 @@ const {
 // =====================================
 // TẤT CẢ ROUTES ĐỀU YÊU CẦU ĐĂNG NHẬP
 // =====================================
-router.use(authenticate);
+router.use(authenticate, requirePasswordChanged);
 
 // =====================================
 // 1. DANH SÁCH NGƯỜI DÙNG

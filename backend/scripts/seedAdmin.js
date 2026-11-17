@@ -5,6 +5,8 @@ const mongoose = require("mongoose");
 const User = require("../src/modules/users/user.model");
 const connectDatabase = require("../src/config/database");
 const { hashPassword } = require("../src/utils/password");
+const { newPasswordSchema } = require("../src/validators/password.validator");
+const { logError } = require("../src/utils/logger");
 
 const seedAdmin = async () => {
   try {
@@ -27,11 +29,8 @@ const seedAdmin = async () => {
       );
     }
 
-    if (ADMIN_PASSWORD.length < 8) {
-      throw new Error(
-        "Mật khẩu Admin phải có ít nhất 8 ký tự."
-      );
-    }
+    // Validate trước khi kết nối; dùng cùng chính sách với API tạo tài khoản.
+    newPasswordSchema.parse(ADMIN_PASSWORD);
 
     // Kết nối MongoDB
     await connectDatabase();
@@ -82,7 +81,7 @@ const seedAdmin = async () => {
     console.log("--------------------------------");
 
   } catch (error) {
-    console.error("SEED ADMIN FAILED:", error.message);
+    logError(error, "seed-admin");
     process.exitCode = 1;
   } finally {
     await mongoose.disconnect();
