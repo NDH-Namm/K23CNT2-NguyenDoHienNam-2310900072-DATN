@@ -22,5 +22,5 @@
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src", "../backend/src/utils/jwt.js", "../backend/src/utils/password.js", "../backend/src/modules/auth/auth.controller.js", "../backend/src/modules/auth/auth.routes.js", "../backend/src/modules/auth/auth.service.js", "../backend/src/modules/auth/auth.validator.js", "../backend/src/modules/users/user.controller.js", "../backend/src/modules/users/user.model.js", "../backend/src/modules/users/user.routes.js", "../backend/src/modules/users/user.service.js", "../backend/src/middlewares/error.middleware.js", "../backend/src/middlewares/role.middleware.js", "../backend/src/middlewares/auth.middleware.js"]
+  "include": ["src"]
 }

@@ -1,0 +1,6 @@
+import { useEffect } from 'react'
+
+export function PageTitle({ title }: { title: string }) {
+  useEffect(() => { document.title = `${title} | DevMaster` }, [title])
+  return null
+}
