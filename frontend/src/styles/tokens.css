@@ -1,0 +1,30 @@
+/* Màu thương hiệu tập trung; các component không tự định nghĩa bảng màu riêng. */
+@theme {
+  --color-canvas: #0A0A0A;
+  --color-primary: #007BA7;
+  --color-accent: #FF2D95;
+  --color-primary-hover: #006B92;
+  --color-primary-ink: #71C8E8;
+  --color-primary-soft: #0D2028;
+  --color-primary-border: #23556A;
+  --color-accent-ink: #FF8CC7;
+  --color-accent-soft: #29121E;
+  --color-accent-border: #71334F;
+  --color-surface: #111111;
+  --color-surface-raised: #191919;
+  --color-border: #2A2A2A;
+  --color-border-strong: #45454A;
+  --color-foreground: #F4F4F5;
+  --color-secondary: #CECED3;
+  --color-muted: #ABABB4;
+  --color-subtle: #94949E;
+  --color-on-primary: #FFFFFF;
+  --font-sans: "Segoe UI", Inter, system-ui, -apple-system, sans-serif;
+}
+
+:root {
+  --focus-ring: var(--color-primary-ink);
+  --focus-halo: #007BA729;
+  --overlay: #000000B8;
+  --shadow-color: #00000040;
+}

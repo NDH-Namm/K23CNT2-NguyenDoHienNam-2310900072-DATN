@@ -6,6 +6,7 @@ export default defineConfig({
   workers: 1,
   retries: 0,
   reporter: 'list',
+  globalSetup: './e2e/global-setup.ts',
   use: {
     baseURL: 'http://127.0.0.1:4174',
     browserName: 'chromium',
@@ -16,12 +17,7 @@ export default defineConfig({
   },
   projects: [
     { name: 'desktop', use: { viewport: { width: 1440, height: 1000 } } },
+    { name: 'tablet', use: { viewport: { width: 820, height: 1180 }, hasTouch: true } },
     { name: 'mobile', use: { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true } },
   ],
-  webServer: {
-    command: 'npm run dev -- --host 127.0.0.1 --port 4174 --strictPort',
-    url: 'http://127.0.0.1:4174',
-    reuseExistingServer: false,
-    env: { VITE_API_URL: '/api/v1' },
-  },
 })

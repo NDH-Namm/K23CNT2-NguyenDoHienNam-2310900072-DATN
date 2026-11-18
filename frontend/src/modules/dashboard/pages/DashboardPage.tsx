@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Building2, CalendarDays, CircleCheck, Clock3, KeyRound, Layers3, Monitor, Package, ShieldCheck } from 'lucide-react'
+import { ArrowRight, Bell, Building2, CalendarDays, ChartNoAxesCombined, ChartPie, CircleCheck, Clock3, KeyRound, Layers3, Monitor, Package, ShieldCheck, Wrench } from 'lucide-react'
 import { useAuth } from '../../../contexts/auth-context'
 import { ROLE_LABELS } from '../../auth/types/auth.types'
 import { PageTitle } from '../../../components/PageTitle'
+import { EmptyState } from '../../../components/EmptyState'
 
 const modules = [
-  { title: 'Tài sản', icon: Package, className: 'teal', description: 'Theo dõi toàn bộ vòng đời tài sản doanh nghiệp.', caption: 'TỔNG TÀI SẢN' },
-  { title: 'Thiết bị', icon: Monitor, className: 'blue', description: 'Nắm bắt tình trạng và hiệu quả sử dụng thiết bị.', caption: 'TỔNG THIẾT BỊ' },
-  { title: 'Cơ sở vật chất', icon: Building2, className: 'amber', description: 'Quản lý tòa nhà, phòng và không gian làm việc.', caption: 'KHÔNG GIAN QUẢN LÝ' },
+  { title: 'Tổng tài sản', icon: Package, tone: 'primary' },
+  { title: 'Tổng thiết bị', icon: Monitor, tone: 'primary' },
+  { title: 'Cơ sở vật chất', icon: Building2, tone: 'secondary' },
+  { title: 'Bảo trì', icon: Wrench, tone: 'accent' },
 ]
 
 export function DashboardPage() {
@@ -34,19 +36,30 @@ export function DashboardPage() {
         <div className="welcome-art-small art-three"><Building2 size={23} /></div>
       </div>
     </section>
-    <div className="section-heading"><h2>Các phân hệ quản lý</h2><span>Đang chuẩn bị đưa vào sử dụng</span></div>
-    <section className="module-grid" aria-label="Các phân hệ quản lý">
-      {modules.map(({ title, icon: Icon, description, className, caption }) => <article key={title} className="module-card">
-        <div className="module-card-top"><span className={`module-icon ${className}`}><Icon size={23} /></span><span className="coming-badge">Sắp có</span></div>
-        <h3>{title}</h3><p>{description}</p>
-        <div className="module-card-metric"><span>{caption}</span><strong aria-label="Chưa có dữ liệu">—</strong></div>
+    <div className="section-heading"><h2>Tài sản & vận hành</h2><span>Tổng hợp tình hình quản lý doanh nghiệp</span></div>
+    <section className="module-grid" aria-label="Chỉ số tổng quan">
+      {modules.map(({ title, icon: Icon, tone }) => <article key={title} className={`module-card kpi-card kpi-${tone}`}>
+        <div className="module-card-top"><h3>{title}</h3><span className={`module-icon tone-${tone}`}><Icon size={21} /></span></div>
+        <strong className="kpi-value" aria-label="Chưa có số liệu">—</strong>
+        <p className="kpi-caption">Chưa có dữ liệu</p>
       </article>)}
     </section>
+    <div className="chart-grid">
+      <section className="panel chart-panel" aria-label="Biểu đồ tình trạng tài sản">
+        <div className="panel-heading"><div><h2>Tình trạng tài sản</h2><p>Phân bố theo trạng thái sử dụng</p></div><ChartPie size={19} /></div>
+        <EmptyState icon={ChartPie} description="Biểu đồ sẽ hiển thị khi có dữ liệu tình trạng tài sản." />
+      </section>
+      <section className="panel chart-panel" aria-label="Biểu đồ biến động tài sản">
+        <div className="panel-heading"><div><h2>Biến động tài sản</h2><p>Theo dõi thay đổi theo thời gian</p></div><ChartNoAxesCombined size={19} /></div>
+        <EmptyState icon={ChartNoAxesCombined} description="Chưa có dữ liệu theo thời gian để hiển thị biểu đồ." />
+      </section>
+    </div>
     <div className="dashboard-lower">
       <section className="panel activity-panel"><div className="panel-heading"><h2>Hoạt động gần đây</h2><Clock3 size={18} /></div>
-        <div className="empty-state"><div className="empty-state-icon"><Clock3 size={28} strokeWidth={1.4} /></div>
-          <h3>Mọi hoạt động, tại một nơi</h3><p>Lịch sử tài sản và các hoạt động vận hành sẽ xuất hiện tại đây khi các phân hệ được đưa vào sử dụng.</p>
-        </div>
+        <EmptyState icon={Clock3} description="Lịch sử hoạt động sẽ xuất hiện tại đây khi có dữ liệu vận hành." />
+      </section>
+      <section className="panel reminders-panel"><div className="panel-heading"><h2>Nhắc việc</h2><Bell size={18} /></div>
+        <EmptyState icon={Bell} description="Chưa có dữ liệu về lịch bảo trì, bảo hành và các công việc cần xử lý." />
       </section>
       <section className="panel account-panel"><div className="panel-heading"><h2>Tài khoản của bạn</h2><ShieldCheck size={18} /></div>
         <dl className="account-details"><div><dt>Mã nhân viên</dt><dd>{state.user.employeeCode}</dd></div>
